@@ -1,3 +1,57 @@
-.einwesen-listkanban div {
-    background-color: yellow;
+.einwesen-listkanban-border-color {
+    /* no need to set it yet */
+    border-color: inherit;
+}
+div.einwesen-listkanban-board {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}    
+
+div.einwesen-listkanban-board .einwesen-listkanban-progress {
+    font-style: italic;
+    float: right;
+}
+
+div.einwesen-listkanban-board > div.einwesen-listkanban-col {
+    flex-grow: 1;
+    border-left: 1px dashed;
+    border-right: 1px dashed;
+}    
+
+div.einwesen-listkanban-board > div.einwesen-listkanban-col > div:first-child {
+    text-align: center;
+    border-bottom: 1px solid;
+}
+div.einwesen-listkanban-board > div.einwesen-listkanban-col > div:first-child .einwesen-listkanban-progress {
+    margin-right: 5px;
+}
+
+div.einwesen-listkanban-board > div.einwesen-listkanban-col ul {
+    list-style: none;            
+    padding-left: 1.1em;
+}
+div.einwesen-listkanban-board > div.einwesen-listkanban-col > ul {
+    margin-left: 5px;
+    margin-right: 5px;
+    padding-inline-start: 0px;
+}
+div.einwesen-listkanban-board > div.einwesen-listkanban-col > ul li {
+    margin-top: -6px;
+    margin-bottom: -6px;
+}
+
+div.einwesen-listkanban-board > div.einwesen-listkanban-col > ul > li {
+    border: 1px solid;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    padding: 5px;
+}
+div.einwesen-listkanban-board > div.einwesen-listkanban-col li:before {
+    content: "\2610";
+    padding-right: 0.1em;
+}
+div.einwesen-listkanban-board > div.einwesen-listkanban-col li.einwesen-listkanban-done:before {
+    content: "\2611";
+    padding-right: 0.1em;
 }

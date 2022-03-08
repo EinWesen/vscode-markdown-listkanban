@@ -7,32 +7,33 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
   const myEnv = {};
   const children = (md.parse(token.content, myEnv) as Token[]);
   
-  var resultHTML = '<div class="einwesen-listkanban-board">';
+  var resultHTML = '<div class="einwesen-listkanban-board">\n';
   
-  let headerisOpen: boolean = false;
+  let headerisOpen:boolean = false;
   let prevType:string = '';
     
   // TODO: better POP ?
   for (var tok of children) {
+    let tokenHTML:string = '';    
     switch (tok.type) {
       case 'heading_open':
         if (headerisOpen) {
-            resultHTML += '</div>';
+            tokenHTML += '  </div>\n';
         }
         headerisOpen = true;
-        resultHTML += '<div class="einwesen-listkanban-col einwesen-listkanban-border-color">';
+        tokenHTML += '  <div class="einwesen-listkanban-col einwesen-listkanban-border-color">\n';
         break;
       case 'inline':         
         switch(prevType) {
           case 'heading_open':  
-            resultHTML += '<div>';
-            resultHTML += slf.render(tok.children as Token[], md.options, myEnv)
-            resultHTML += '</div>';
+            tokenHTML += '    <div>';
+            tokenHTML += slf.render(tok.children as Token[], md.options, myEnv)
+            tokenHTML += '</div>\n';
             break;
 //          case 'list_item_open':            
-//            resultHTML += '<span>';
+//            tokenHTML += '<span>';
 //            inlineTokens.forEach(t => resultTokens.push(t));
-//            resultHTML += '</span>';
+//            tokenHTML += '</span>';
 //            break;
           case 'paragraph_open':
             let inlineTokens:Token[] = [];
@@ -40,7 +41,7 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
               if(t.type == 'hardbreak') break;
               inlineTokens.push(t);
             }
-            resultHTML += slf.render(inlineTokens, md.options, myEnv);
+            tokenHTML += slf.render(inlineTokens, md.options, myEnv);
             break;
           default:
         } 
@@ -49,41 +50,51 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
         break;  
       case 'bullet_list_open':
         tok.attrJoin('class', 'einwesen-listkanban-source'); // for list View
-        if (tok.level != 0) resultHTML += '<div>';
-        resultHTML += '<ul>';
+        tokenHTML += '  '.repeat(3+tok.level);
+        if (tok.level != 0) tokenHTML += '<div>';
+        tokenHTML += '<ul>\n';
         break;
       case 'bullet_list_close':
-        if (tok.level != 0) resultHTML += '</div>';
-        resultHTML += '</ul>';
+        tokenHTML += '  '.repeat(3+tok.level);
+        tokenHTML += '</ul>';
+        if (tok.level != 0) tokenHTML += '</div>';
+        tokenHTML += '\n';
         break;
       case 'list_item_open':
+        tokenHTML += '  '.repeat(3+tok.level);
         if (tok.markup == '+') {
           tok.attrJoin('class', 'einwesen-listkanban-done'); // for list View
-          resultHTML += '<li class="einwesen-listkanban-done">';
+          tokenHTML += '<li class="einwesen-listkanban-done">';
         } else {
-          resultHTML += '<li>';
+          tokenHTML += '<li>';
         }
+        tokenHTML += '\n';
         break;
       case 'list_item_close':
-        resultHTML += '</li>';
+        tokenHTML += '  '.repeat(3+tok.level);
+        tokenHTML += '</li>\n';
         break;
       case 'paragraph_open':
-        resultHTML += '<span>';
+        tokenHTML += '  '.repeat(3+tok.level);
+        tokenHTML += '<span>';
         break;
       case 'paragraph_close':    
-        resultHTML += '</span>';
+        tokenHTML += '</span>\n';
         break;
       default:
     }
+
+    resultHTML += tokenHTML;
     prevType = tok.type;
+    //console.log(tok.block, tok.type, tok.level, tok.nesting, tokenHTML);
   }
 
   if (headerisOpen) {
-    resultHTML += '</div>';
+    resultHTML += '  </div>\n';
   }
           
   resultHTML += '</div>';
-  return resultHTML + '\n' + slf.render(children, md.options, myEnv);
+  return resultHTML + '\n' + '<hr>'+ slf.render(children, md.options, myEnv);
 }
 
 export default function (md:MarkdownIt) {      

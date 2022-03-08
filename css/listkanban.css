@@ -17,6 +17,7 @@ div.einwesen-listkanban-board > div.einwesen-listkanban-col {
     flex-grow: 1;
     border-left: 1px dashed;
     border-right: 1px dashed;
+    min-width: fit-content;
 }    
 
 div.einwesen-listkanban-board > div.einwesen-listkanban-col > div:first-child {

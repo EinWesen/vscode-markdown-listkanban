@@ -29,7 +29,7 @@ div.einwesen-listkanban-board > div.einwesen-listkanban-col > div:first-child .e
 
 div.einwesen-listkanban-board > div.einwesen-listkanban-col ul {
     list-style: none;            
-    padding-left: 1.1em;
+    padding-left: 1.3em;
 }
 div.einwesen-listkanban-board > div.einwesen-listkanban-col > ul {
     margin-left: 5px;
@@ -54,4 +54,20 @@ div.einwesen-listkanban-board > div.einwesen-listkanban-col li:before {
 div.einwesen-listkanban-board > div.einwesen-listkanban-col li.einwesen-listkanban-done:before {
     content: "\2611";
     padding-right: 0.1em;
+}
+
+ul.einwesen-listkanban-source {
+    list-style: none;
+    /*margin-left: 0;*/
+    padding-left: 40px;
+    text-indent: -1.9em;
+}
+ul.einwesen-listkanban-source > li:before {
+    content: "\2610";
+    padding-right: 1em;
+}
+ul.einwesen-listkanban-source > li.einwesen-listkanban-done:before
+{
+    content: "\2611";
+    padding-right: 1em;
 }

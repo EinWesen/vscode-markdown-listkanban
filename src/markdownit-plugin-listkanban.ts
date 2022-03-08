@@ -2,16 +2,6 @@ import MarkdownIt from "markdown-it"
 import Renderer from "markdown-it/lib/renderer"
 import Token from "markdown-it/lib/token"
 
-function newHtmlTagToken(tag: string, content:string):Token {
-  return newHtmlToken('<' + tag + '>'+content + '</' + tag + '>');
-}
-function newHtmlToken(content:string):Token {
-  const token = new Token('html_block', '', 0);
-  token.block = true;
-  token.content = content;
-  return token;
-}
-
 function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : string {  
   
   const myEnv = {};
@@ -25,7 +15,7 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
   // TODO: better POP ?
   for (var tok of children) {
     switch (tok.type) {
-      case 'heading_open':        
+      case 'heading_open':
         if (headerisOpen) {
             resultHTML += '</div>';
         }
@@ -58,6 +48,7 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
       case 'heading_close':
         break;  
       case 'bullet_list_open':
+        tok.attrJoin('class', 'einwesen-listkanban-source'); // for list View
         if (tok.level != 0) resultHTML += '<div>';
         resultHTML += '<ul>';
         break;
@@ -67,6 +58,7 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
         break;
       case 'list_item_open':
         if (tok.markup == '+') {
+          tok.attrJoin('class', 'einwesen-listkanban-done'); // for list View
           resultHTML += '<li class="einwesen-listkanban-done">';
         } else {
           resultHTML += '<li>';

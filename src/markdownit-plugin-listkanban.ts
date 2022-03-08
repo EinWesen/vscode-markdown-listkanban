@@ -11,17 +11,23 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
   
   let headerisOpen:boolean = false;
   let prevType:string = '';
+  let bulletListCounter = 0;
     
   // TODO: better POP ?
   for (var tok of children) {
     let tokenHTML:string = '';    
     switch (tok.type) {
       case 'heading_open':
-        if (headerisOpen) {
-            tokenHTML += '  </div>\n';
+        if (tok.markup == '#') {
+          if (headerisOpen) {
+              tokenHTML += '  </div>\n';
+          }
+          headerisOpen = true;
+          tokenHTML += '  <div class="einwesen-listkanban-col einwesen-listkanban-border-color">\n';
+        } else if (tok.markup == '##' && bulletListCounter > 0) {
+          // TODO: Its a very unsafe assumption, that structurewise we are at that level
+          tokenHTML += '      </ul>\n';
         }
-        headerisOpen = true;
-        tokenHTML += '  <div class="einwesen-listkanban-col einwesen-listkanban-border-color">\n';
         break;
       case 'inline':         
         switch(prevType) {
@@ -47,18 +53,25 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
         } 
         break;
       case 'heading_close':
+        // TODO: Its a very unsafe assumption, that structurewise we are at that level
+        if (tok.markup == '##' && bulletListCounter > 0) {
+          tokenHTML += '      <ul>\n';
+        }
         break;  
       case 'bullet_list_open':
+        bulletListCounter+=1;
         tok.attrJoin('class', 'einwesen-listkanban-source'); // for list View
         tokenHTML += '  '.repeat(3+tok.level);
         if (tok.level != 0) tokenHTML += '<div>';
         tokenHTML += '<ul>\n';
         break;
       case 'bullet_list_close':
+        bulletListCounter-=1;
         tokenHTML += '  '.repeat(3+tok.level);
         tokenHTML += '</ul>';
         if (tok.level != 0) tokenHTML += '</div>';
         tokenHTML += '\n';
+
         break;
       case 'list_item_open':
         tokenHTML += '  '.repeat(3+tok.level);

@@ -24,6 +24,13 @@ div.einwesen-listkanban-board > div.einwesen-listkanban-col > div:first-child {
     text-align: center;
     border-bottom: 1px solid;
 }
+
+div.einwesen-listkanban-board > div.einwesen-listkanban-col > div:not(:first-child) {
+    text-align: center;
+    text-decoration-line: underline;
+    text-decoration-style: double;        
+}    
+
 div.einwesen-listkanban-board > div.einwesen-listkanban-col > div:first-child .einwesen-listkanban-progress {
     margin-right: 5px;
 }

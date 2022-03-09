@@ -2,10 +2,35 @@ import MarkdownIt from "markdown-it"
 import Renderer from "markdown-it/lib/renderer"
 import Token from "markdown-it/lib/token"
 
+const COLOR_KEY = 'einwesen.listkanban.colorkey';
+
 function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : string {  
   
+  const colorMap = env[COLOR_KEY] != undefined ? env[COLOR_KEY] as Map<string,string> : new Map<string,string>();
   const myEnv = {};
   const children = (md.parse(token.content, myEnv) as Token[]);
+
+  // very dirty hac
+  children.forEach((tok, index) => {
+    if (tok.type == 'inline') {
+      if (colorMap.size > 0 && tok.content.indexOf('@') > -1) {
+        var color:any = /@([^ $]*)/g.exec(tok.content);
+        if (color != null) {
+          color = colorMap.get(color[1]);
+          if (color != undefined) {
+            tok.content = tok.content.replace('@'+color, '');
+            for (let i=index-1; i>=0;i--) {
+              const li = children[i];
+              if (li.type == 'list_item_open') {
+                li.meta = color;                
+                break;
+              }
+            }            
+          }
+        }        
+      }
+    }
+  });
   
   var resultHTML = '<div class="einwesen-listkanban-board">\n';
   
@@ -77,11 +102,16 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
         tokenHTML += '  '.repeat(3+tok.level);
         if (tok.markup == '+') {
           tok.attrJoin('class', 'einwesen-listkanban-done'); // for list View
-          tokenHTML += '<li class="einwesen-listkanban-done">';
+          tokenHTML += '<li class="einwesen-listkanban-done"';
         } else {
-          tokenHTML += '<li>';
+          tokenHTML += '<li';
         }
-        tokenHTML += '\n';
+
+        if (tok.meta != undefined) {
+          tokenHTML += ' style="background-color: ' + tok.meta + ';"';
+        }
+
+        tokenHTML += '>\n';
         break;
       case 'list_item_close':
         tokenHTML += '  '.repeat(3+tok.level);
@@ -99,7 +129,7 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
 
     resultHTML += tokenHTML;
     prevType = tok.type;
-    //console.log(tok.block, tok.type, tok.level, tok.nesting, tokenHTML);
+//    console.log(tok.block, tok.type, tok.level, tok.nesting, tokenHTML);
   }
 
   if (headerisOpen) {
@@ -110,12 +140,27 @@ function renderFenceBlock(md:MarkdownIt, token:Token, env: any, slf:Renderer) : 
   return resultHTML + '\n' + '<hr>'+ slf.render(children, md.options, myEnv);
 }
 
+function parseColors(token:Token):Map<string, string> {
+  const regexp = /(.*)=(.*)/g;
+  const result = new Map();
+  for (let m of token.content.matchAll(regexp)) {
+    result.set(m[1], m[2]);
+  };
+  return result;
+}
+
 export default function (md:MarkdownIt) {      
   const superFenceRule = md.renderer.rules.fence as Renderer.RenderRule;
+
   md.renderer.rules.fence = (tokens, idx, options, env, slf) => {
       const token = tokens[idx];
       if (token.block && token.info.indexOf('listkanban')>-1) {
-        return renderFenceBlock(md, token,env, slf);
+        if (token.info.indexOf('properties')>-1) {
+          env[COLOR_KEY] = parseColors(token);
+          return ''; // Hide this block
+        } else {
+          return renderFenceBlock(md, token,env, slf);
+        }
       } else {
         return superFenceRule(tokens, idx, options, env, slf);
       }

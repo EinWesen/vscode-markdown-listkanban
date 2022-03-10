@@ -103,7 +103,8 @@ function tokenize_fence_list_kanban(md: MarkdownIt, state: StateBlock, startLine
     token.tag = 'div';
     token.attrSet('class', 'einwesen-listkanban-board');
 
-    const markdowntoken: Token[] = md.parse(state.getLines(startLine + 1, nextLine, len, true), {});
+    let blockString = state.getLines(startLine + 1, nextLine, len, true);
+    const markdowntoken: Token[] = md.parse(blockString, {});
     retokenize_kanban_list_content(md, state, markdowntoken);
 
     token = state.push('fence_einwesen_listkanban_close', '', -1);
@@ -115,6 +116,7 @@ function tokenize_fence_list_kanban(md: MarkdownIt, state: StateBlock, startLine
     token.hidden = hidden;
 
     for (let m of markdowntoken) {
+      if (m.type == 'inline' ) m.content = ''; // Do not understand why
       state.tokens.push(m);
     }
   } else {
@@ -169,6 +171,14 @@ function retokenize_kanban_list_content(md: MarkdownIt, state: StateBlock, conte
       case 'list_item_open':
         lastBlockToken = new Token('einwesen_listkanban_task', 'li', 0);
         lastBlockToken.level = taskLevel;
+        lastBlockToken.markup = content.markup;
+
+        switch (lastBlockToken.markup) {
+          case '+':
+            lastBlockToken.attrJoin('class', 'einwesen-listkanban-done');
+            break;
+          default:
+        }        
 
         if (taskLevel == 1) {
           state.tokens.push(lastBlockToken);
@@ -179,22 +189,19 @@ function retokenize_kanban_list_content(md: MarkdownIt, state: StateBlock, conte
         if (taskLevel < lastLevel) {
           taskTokens = taskTokens.slice(0, taskLevel - 1);
           lastLevel = taskLevel - 1;
-        }
-
-        if (taskTokens.length == 0) {
-          taskTokens.push(lastBlockToken);
         } else if (taskLevel == lastLevel) {
           taskTokens.pop();
-          taskTokens.push(lastBlockToken);
-        } else if (taskLevel > lastLevel) {
-          const parent = (taskTokens[taskTokens.length - 1] as Token);
+        }
+
+        if (taskTokens.length > 0) {
+          const parent = (taskTokens[taskTokens.length - 1] as Token);        
           if (parent.children) {
-            parent.children.push(lastBlockToken);
+              parent.children.push(lastBlockToken);
           } else {
             parent.children = [lastBlockToken];
           }
-          taskTokens.push(lastBlockToken);
         }
+        taskTokens.push(lastBlockToken);        
         break;
       case 'list_item_close':
       case 'heading_close':
@@ -270,6 +277,8 @@ function renderTag(tokens: Token[], idx: number, options: MarkdownIt.Options, en
 function renderTasks(token: Token, options: MarkdownIt.Options, env: any, slf: Renderer): string {
   let result = '';
 
+  if (token.markup == '*' || token.hidden) return result;
+  
   if (token.children && token.children.length > 0) {
     result += '  '.repeat(4 + token.level);
     result += '<li' + slf.renderAttrs(token) + '>\n';
